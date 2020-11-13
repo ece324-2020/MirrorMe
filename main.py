@@ -15,8 +15,10 @@ from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5 import QtCore # , QtGui, QtWidgets
 
 import csv
+import random
 
-PATH = 'C:/Users/ykest/Desktop/EngSci Year 3/ECE324/project_test'
+# PATH = '/home/johnlee832/Desktop'
+PATH = '/home/johnlee832/Documents/ECE324-data/clean_dataset/train_data'
 
 #* Grabs *.jpg files in the directory PATH
 def getImgFiles(PATH):
@@ -27,6 +29,7 @@ def getImgFiles(PATH):
         if ext == '.jpg':
             imgs.append(f)
     return imgs
+
 
 class LabelApp(QWidget):
     
@@ -39,13 +42,28 @@ class LabelApp(QWidget):
         self.output = []
         
         layout1 = QHBoxLayout()
-        self.files = getImgFiles(PATH)
-        for img_name in self.files:
-            image = QLabel()
+        region1 = QLabel()
+        region2 = QLabel()
+        region3 = QLabel()
+        # self.files = getImgFiles(PATH)
+        regions = [region1, region2, region3]
+        self.triplet = self.getTriplet(PATH)
+
+        i = 0
+        for img_name in self.triplet:
             pixmap = QPixmap(os.path.join(PATH, img_name))
-            image.resize(200, 200)
-            image.setPixmap(pixmap.scaled(image.size(), QtCore.Qt.KeepAspectRatio))
-            layout1.addWidget(image)
+            regions[i].resize(200, 200)
+            regions[i].setPixmap(pixmap.scaled(regions[i].size(), QtCore.Qt.KeepAspectRatio))
+            layout1.addWidget(regions[i])
+            i += 1
+        
+        # for img_name in self.triplet:
+        #     # image = QLabel()
+        #     pixmap = QPixmap(os.path.join(PATH, img_name))
+        #     image.resize(200, 200)
+        #     image.setPixmap(pixmap.scaled(image.size(), QtCore.Qt.KeepAspectRatio))
+        #     layout1.addWidget(image)
+        # dispTriplet(PATH,layout1,[region1, region2, region3])
         
         layout2 = QVBoxLayout()
         btnLabel = QLabel(
@@ -73,11 +91,37 @@ class LabelApp(QWidget):
         self.save.clicked.connect(lambda:self.register(self.b1,self.b2,self.b3))
         layout3.addWidget(self.save)
 
+        self.next = QPushButton("Next")
+        self.next.clicked.connect(lambda:self.dispTriplet(PATH, regions))
+        layout3.addWidget(self.next)
+
         layout2.addLayout(layout3)
 
         layout1.addLayout(layout2)
         self.setLayout(layout1)
     
+    #* Get random triplets
+    def getTriplet(self,PATH):
+        files = getImgFiles(PATH)   #* all image files in directory
+        triplet = random.sample(files, 3)
+        return triplet
+
+    #* Display triplet
+    def dispTriplet(self,PATH,regions):
+        self.triplet = self.getTriplet(PATH)
+        i = 0
+        for img_name in self.triplet:
+            pixmap = QPixmap(os.path.join(PATH, img_name))
+            regions[i].resize(200, 200)
+            regions[i].setPixmap(pixmap.scaled(regions[i].size(), QtCore.Qt.KeepAspectRatio))
+
+            i += 1
+
+        return self.triplet
+
+
+
+
     #* Callback for save button
     def register(self,*argv):
         self.out = None
@@ -86,11 +130,20 @@ class LabelApp(QWidget):
                 self.out = button.text() + " SAVED"
                 break
         if self.out != None:
-            self.label = [self.files,self.out]  #! Esther: here is the saved variable
+            self.label = [self.triplet] + [self.out]  #! Esther: here is the saved variable
             # print(self.label)
         else:
             print("Select Image before saving!")
-        self.output = self.output + [self.label]
+        if self.triplet not in self.output:
+            print("self.triplet NOT IN self.output")
+            self.output = self.output + self.label
+        else:
+            print("self.triplet IN self.output")
+            idx = self.output.index(self.triplet)
+            self.output.pop(idx)
+            self.output.pop(idx)
+            self.output = self.output + self.label
+        print(self.output)
         return self.output
 
     #* Callback for buttons 1 2 3
@@ -117,6 +170,9 @@ class LabelApp(QWidget):
         elif event.key() == QtCore.Qt.Key_Enter or event.key() == QtCore.Qt.Key_Return:
             print("ENTER")
             self.save.click()
+        elif event.key() == QtCore.Qt.Key_Right:
+            print("NEXT")
+            self.next.click()
         event.accept()
 
 def main():
@@ -129,11 +185,11 @@ def main():
         mode = "a+"
     else:
         mode = "w"
-    with open(PATH + "/output.csv", mode, newline='') as csvfile:
+    with open("/home/johnlee832/Documents/ECE324-project/MirrorMe/output.csv", mode, newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=",", quoting=csv.QUOTE_NONE)
-        for i in demo.output:
-            label = int(i[1].split("Image ")[1].split(" ")[0])
-            writer.writerow([i[0][0], i[0][1], i[0][2], label])
+        for i, j in zip(demo.output[0::2], demo.output[1::2]):
+            label = int(j.split("Image ")[1].split(" ")[0])
+            writer.writerow([i[0], i[1], i[2], label])
     sys.exit()
     
 if __name__ == "__main__":
