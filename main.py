@@ -75,15 +75,15 @@ class LabelApp(QWidget):
 
         layout4 = QVBoxLayout()
         self.b1 = QRadioButton("Image 1")
-        self.b1.toggled.connect(lambda:self.btnstate(self.b1))
+        # self.b1.toggled.connect(lambda:self.btnstate(self.b1))
         layout4.addWidget(self.b1)
 
         self.b2 = QRadioButton("Image 2")
-        self.b2.toggled.connect(lambda:self.btnstate(self.b2))
+        # self.b2.toggled.connect(lambda:self.btnstate(self.b2))
         layout4.addWidget(self.b2)
 
         self.b3 = QRadioButton("Image 3")
-        self.b3.toggled.connect(lambda:self.btnstate(self.b3))
+        # self.b3.toggled.connect(lambda:self.btnstate(self.b3))
         layout4.addWidget(self.b3)
         layout3.addLayout(layout4)
 
@@ -135,45 +135,47 @@ class LabelApp(QWidget):
         else:
             print("Select Image before saving!")
         if self.triplet not in self.output:
-            print("self.triplet NOT IN self.output")
+            # print("self.triplet NOT IN self.output")
             self.output = self.output + self.label
         else:
-            print("self.triplet IN self.output")
+            # print("self.triplet IN self.output")
             idx = self.output.index(self.triplet)
             self.output.pop(idx)
             self.output.pop(idx)
             self.output = self.output + self.label
-        print(self.output)
+        # print(self.output)
         return self.output
 
     #* Callback for buttons 1 2 3
-    def btnstate(self,b):
-        if b.isChecked() == True:
-            print(b.text() + " is selected")
-        else:
-            print(b.text() + " is deselected") 
+    # def btnstate(self,b):
+    #     if b.isChecked() == True:
+    #         print(b.text() + " is selected")
+    #     else:
+    #         print(b.text() + " is deselected") 
 
     #* Trigger for keypress
     def keyPressEvent(self, event):
         #* Press number keys to select image
         if event.key() == QtCore.Qt.Key_1:
-            print("Image 1")
+            # print("Image 1")
             self.b1.toggle()
         elif event.key() == QtCore.Qt.Key_2:
-            print("Image 2")
+            # print("Image 2")
             self.b2.toggle()
         elif event.key() == QtCore.Qt.Key_3:
-            print("Image 3")
+            # print("Image 3")
             self.b3.toggle()
         
         #* Pressing either enter key
         elif event.key() == QtCore.Qt.Key_Enter or event.key() == QtCore.Qt.Key_Return:
-            print("ENTER")
+            # print("ENTER")
             self.save.click()
+        #* Pressing right arrow key
         elif event.key() == QtCore.Qt.Key_Right:
-            print("NEXT")
+            # print("NEXT")
             self.next.click()
         event.accept()
+
 
 def main():
     app = QApplication(sys.argv)
@@ -181,15 +183,18 @@ def main():
     demo.show()
     app.exec_()
     # sys.exit(app.exec_())
-    if os.path.exists(PATH + "/output.csv"):
+    if os.path.exists("/home/johnlee832/Documents/ECE324-project/MirrorMe/output.csv"):
         mode = "a+"
     else:
-        mode = "w"
+        mode = "w+"
     with open("/home/johnlee832/Documents/ECE324-project/MirrorMe/output.csv", mode, newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=",", quoting=csv.QUOTE_NONE)
         for i, j in zip(demo.output[0::2], demo.output[1::2]):
             label = int(j.split("Image ")[1].split(" ")[0])
             writer.writerow([i[0], i[1], i[2], label])
+    with open("/home/johnlee832/Documents/ECE324-project/MirrorMe/output.csv") as f:
+        row_count = sum(1 for line in f)
+        print("# of Labels: {}".format(row_count))
     sys.exit()
     
 if __name__ == "__main__":
