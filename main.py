@@ -183,77 +183,19 @@ def main():
     demo.show()
     app.exec_()
     # sys.exit(app.exec_())
-    if os.path.exists("/home/johnlee832/Documents/ECE324-project/MirrorMe/output.csv"):
+    if os.path.exists("/home/johnlee832/Documents/ECE324-project/MirrorMe/bin/output.csv"):
         mode = "a+"
     else:
         mode = "w+"
-    with open("/home/johnlee832/Documents/ECE324-project/MirrorMe/output.csv", mode, newline='') as csvfile:
+    with open("/home/johnlee832/Documents/ECE324-project/MirrorMe/bin/output.csv", mode, newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=",", quoting=csv.QUOTE_NONE)
         for i, j in zip(demo.output[0::2], demo.output[1::2]):
             label = int(j.split("Image ")[1].split(" ")[0])
             writer.writerow([i[0], i[1], i[2], label])
-    with open("/home/johnlee832/Documents/ECE324-project/MirrorMe/output.csv") as f:
+    with open("/home/johnlee832/Documents/ECE324-project/MirrorMe/bin/output.csv") as f:
         row_count = sum(1 for line in f)
         print("# of Labels: {}".format(row_count))
     sys.exit()
     
 if __name__ == "__main__":
     main()
-
-
-
-
-
-#*****************************************************
-#TODO: Stuff to remove ...
-
-
-
-#? Textbox in GUI -> Use QLineEdit
-#? Button in GUI -> QPushButton
-
-
-    
-    # window = QWidget()
-    # window.setWindowTitle('PyQt5 App')
-    # #* (x position,y position,width,height)
-    # # window.setGeometry(100, 100, 280, 80)
-    # # window.move(60, 15)
-    # # helloMsg = QLabel('<h1>Hello World!</h1>', parent=window)
-    # # helloMsg.move(60, 15)
-    # # helloMsg.show()
-
-    # hlay = QHBoxLayout()
-    # for img_name in ('26_K_1.jpg',
-    #                  '26_K_2.jpg',
-    #                  '26_K_3.jpg'):
-    #     label = QLabel()
-    #     pixmap = QPixmap(os.path.join(PATH, img_name))
-    #     label.resize(250, 250)
-    #     label.setPixmap(pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio))
-    #     hlay.addWidget(label)
-
-    
-
-    # # label = QLabel('<h1>Hello World!</h1>', parent=window)
-    # # pixmap = QPixmap(PATH)
-    # # label.setPixmap(pixmap)
-
-    # #button test
-    # btnLabel = QLabel(
-    #     "Identify which two of the three images shown have more similar facial"
-    #     " expressions. Select the odd one out using the buttons:"
-    # )
-    # btn1 = QRadioButton("1")
-    # btn2 = QRadioButton("2")
-    # btn3 = QRadioButton("3")
-
-    # # radio = RadioButton(hlay)
-    # hlay.addWidget(btnLabel)
-    # hlay.addWidget(btn1)
-    # hlay.addWidget(btn2)
-    # hlay.addWidget(btn3)
-
-    # window.setLayout(hlay)
-    
-    # window.show()
