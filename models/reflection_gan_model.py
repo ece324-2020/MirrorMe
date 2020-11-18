@@ -109,6 +109,8 @@ class ReflectionGAN:
         #Want to fool discriminator
         label.fill_(1)
 
+        self.optim_t.zero_grad()
+
         #Reassign d_pred, dont want gradients from before
         d_pred = self.discriminator(img_gen)
 
