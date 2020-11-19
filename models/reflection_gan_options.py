@@ -19,7 +19,9 @@ class Options:
         beta1_d,
         e_loss_ratio,
         a_loss_ratio,
-        c_loss_ratio
+        c_loss_ratio,
+        init_type,
+        epochs
     ):
 
         self.lr_t = lr_t
@@ -29,6 +31,8 @@ class Options:
         self.e_loss_ratio = e_loss_ratio
         self.a_loss_ratio = a_loss_ratio
         self.c_loss_ratio = c_loss_ratio
+        self.init_type = init_type
+        self.epochs = epochs
 
 def load_options_from_yaml(path):
     opts = {} #empty dictionary
@@ -43,7 +47,9 @@ def load_options_from_yaml(path):
         opts['beta1_d'],
         opts['e_loss_ratio'],
         opts['a_loss_ratio'],
-        opts['c_loss_ratio']
+        opts['c_loss_ratio'],
+        opts['init_type']
+        opts['epochs']
     )
 
     return options
