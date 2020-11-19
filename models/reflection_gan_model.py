@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 
+from torch.autograd import Variable
+
 from .reflection_gan_options import Options
 
 #Here, we implement an object that coordinates the three models
@@ -57,7 +59,7 @@ class ReflectionGAN:
 
     #Take in target image and source expression embedding batches as parameters
     #This trains for a single batch, assume epoch training done elsewhere
-    def train_batch(self, img_trg, e2):
+    def train_batch(self, img_trg, img_src):
         loss_d = 0
         adversarial_loss_t = 0
         embedding_loss_t = 0
@@ -69,6 +71,7 @@ class ReflectionGAN:
         self.fecnet.eval()
 
         e1 = self.fecnet(img_trg) #original expression embedding
+        e2 = self.fecnet(img_src)
 
         #######################################################################
         #ADVERSARIAL LOSS
@@ -79,7 +82,7 @@ class ReflectionGAN:
 
         #Train with real images
         #Set all the labels to true (real)
-        label = torch.full((x.size(0),), 1, dtype=torch.cuda.float)
+        label = Variable(torch.full((x.size(0),), 1).cuda())
 
         d_pred = self.discriminator(img_trg)
 

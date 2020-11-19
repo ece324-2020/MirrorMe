@@ -1,3 +1,5 @@
+import yaml
+
 #Define options for training ReflectionGAN
 
 #lr_t : Translator learning rate
@@ -17,7 +19,9 @@ class Options:
         beta1_d,
         e_loss_ratio,
         a_loss_ratio,
-        c_loss_ratio
+        c_loss_ratio,
+        init_type,
+        epochs
     ):
 
         self.lr_t = lr_t
@@ -27,3 +31,25 @@ class Options:
         self.e_loss_ratio = e_loss_ratio
         self.a_loss_ratio = a_loss_ratio
         self.c_loss_ratio = c_loss_ratio
+        self.init_type = init_type
+        self.epochs = epochs
+
+def load_options_from_yaml(path):
+    opts = {} #empty dictionary
+
+    with open(path) as f:
+        opts = yaml.load(f, Loader=yaml.FullLoader)
+
+    options = Options(
+        opts['lr_t'],
+        opts['lr_d'],
+        opts['beta1_t'],
+        opts['beta1_d'],
+        opts['e_loss_ratio'],
+        opts['a_loss_ratio'],
+        opts['c_loss_ratio'],
+        opts['init_type']
+        opts['epochs']
+    )
+
+    return options
