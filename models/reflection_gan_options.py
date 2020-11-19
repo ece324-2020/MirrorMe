@@ -10,24 +10,6 @@ import yaml
 #a_loss_ratio : Adversarial loss ratio
 #c_loss_ratio : Consistency loss ratio
 
-def load_options_from_yaml(path):
-    opts = {} #empty dictionary
-
-    with open(path) as f:
-        opts = yaml.load(f, Loader=yaml.FullLoader)
-
-    options = Options(
-        opts['lr_t'],
-        opts['lr_d'],
-        opts['beta1_t'],
-        opts['beta1_d'],
-        opts['e_loss_ratio'],
-        opts['a_loss_ratio'],
-        opts['c_loss_ratio']
-    )
-
-    return options
-
 class Options:
     
     def __init__(self, 
@@ -47,3 +29,21 @@ class Options:
         self.e_loss_ratio = e_loss_ratio
         self.a_loss_ratio = a_loss_ratio
         self.c_loss_ratio = c_loss_ratio
+
+def load_options_from_yaml(path):
+    opts = {} #empty dictionary
+
+    with open(path) as f:
+        opts = yaml.load(f, Loader=yaml.FullLoader)
+
+    options = Options(
+        opts['lr_t'],
+        opts['lr_d'],
+        opts['beta1_t'],
+        opts['beta1_d'],
+        opts['e_loss_ratio'],
+        opts['a_loss_ratio'],
+        opts['c_loss_ratio']
+    )
+
+    return options
