@@ -62,6 +62,15 @@ class UNetLeft(nn.Module):
         self.module6 = sub_left(inner_nc, inner_nc, kernel_size = 3, relu=self.relu, norm=None)
 
     def forward(self, x, embed):
+        """[summary]
+
+        Args:
+            x ([type]): [description]
+            embed ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
         x = self.module1(x)
         x = self.module2(x)
         x = self.module3(x)
@@ -73,6 +82,14 @@ class UNetLeft(nn.Module):
 
 class UNetRight(nn.Module):
     def __init__(self, inner_nc = 512, out_nc = 3, input_nc = 513, dropout=False):
+        """[summary]
+
+        Args:
+            inner_nc (int, optional): [description]. Defaults to 512.
+            out_nc (int, optional): [description]. Defaults to 3.
+            input_nc (int, optional): [description]. Defaults to 513.
+            dropout (bool, optional): [description]. Defaults to False.
+        """        
         super(UNetRight, self).__init__()
         
         self.relu = nn.ReLU()
@@ -86,6 +103,14 @@ class UNetRight(nn.Module):
         self.module1 = sub_right(inner_nc / 8, out_nc, relu=self.relu, norm=None, tanh=self.tanh, dropout=dropout)
     
     def forward(self,x):
+        """[summary]
+
+        Args:
+            x ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
         x = self.module6(x)
         x = self.module5(x)
         x = self.module4(x)
@@ -108,6 +133,15 @@ class sub_left(nn.Module):
     # Block 7 (ceil): (512 * 4 * 4)
     
     def __init__(self, in_nc, out_nc, kernel_size=4, padding=1, stride=2, **kwargs):
+        """[summary]
+
+        Args:
+            in_nc ([type]): [description]
+            out_nc ([type]): [description]
+            kernel_size (int, optional): [description]. Defaults to 4.
+            padding (int, optional): [description]. Defaults to 1.
+            stride (int, optional): [description]. Defaults to 2.
+        """        
         super(sub_left, self).__init__()
 
         self.layer = nn.Conv2d(in_nc, out_nc, kernel_size, stride, padding, bias=False)
@@ -119,6 +153,14 @@ class sub_left(nn.Module):
             model.append(kwargs["norm"])
         self.model = nn.Sequential(*model)
     def forward(self,x):
+        """[summary]
+
+        Args:
+            x ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
         return self.model(x)
 
 class sub_right(nn.Module):
@@ -136,6 +178,15 @@ class sub_right(nn.Module):
     # Output segmentation map: (3 * 224 * 224)
 
     def __init__(self, in_nc, out_nc, kernel_size=4, padding=1, stride=2, **kwargs):
+        """[summary]
+
+        Args:
+            in_nc ([type]): [description]
+            out_nc ([type]): [description]
+            kernel_size (int, optional): [description]. Defaults to 4.
+            padding (int, optional): [description]. Defaults to 1.
+            stride (int, optional): [description]. Defaults to 2.
+        """        
         super(sub_right, self).__init__()
 
         self.layer = nn.ConvTranspose2d(in_nc, out_nc, kernel_size, stride, padding, bias=False)
@@ -153,4 +204,12 @@ class sub_right(nn.Module):
         self.model = nn.Sequential(*model)
 
     def forward(self,x):
+        """[summary]
+
+        Args:
+            x ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
         return self.model(x)
