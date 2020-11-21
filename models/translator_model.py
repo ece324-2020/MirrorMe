@@ -4,7 +4,7 @@ import torch.nn as nn
 #Based on UNet in: https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/networks.py
 class UNet(torch.nn.Module):
     """Create a Unet-based generator"""
-    def __init__(self, in_c, out_c, num_downs, n_filters, norm_layer=nn.BatchNorm2d, dropout=False):
+    def __init__(self, in_c = 3, out_c = 3, dropout=False):
         """Construct a Unet generator
 
         Args:
@@ -18,9 +18,10 @@ class UNet(torch.nn.Module):
         """        
         super(UNet, self).__init__()
 
-        pass
+        self.leftmodule = UNetLeft()
+        self.rightmodule = UNetRight(dropout)
 
-    def forward(self,input,embed):
+    def forward(self,x,embed):
         """forward pass of UNet
 
         Args:
@@ -30,13 +31,14 @@ class UNet(torch.nn.Module):
         Returns:
             torch.tensor: output of the network
         """        
-
-        return True
+        x = self.leftmodule(x,embed)
+        x = self.rightmodule(x)
+        return x
 
 class UNetLeft(nn.Module):
 
-    def __init__(self, inner_nc = 512, out_nc = 64, input_nc=3, embedding=None, dropout=False):
-        """ Architecture of left/right in the UNet
+    def __init__(self, inner_nc = 512, out_nc = 64, input_nc=3):
+        """ Architecture of left portion in the UNet
 
         Args:
             inner_nc (int): the number of filters in the bottom section of the U
@@ -50,18 +52,47 @@ class UNetLeft(nn.Module):
             dropout (bool, optional): use dropout or not. Defaults to False.
         """        
         super(UNetLeft,self).__init__()
-
         self.relu = nn.LeakyReLU(0.2)
 
-        self.module1 = sub_left(input_nc, outer_nc, relu=None, norm=None)
-        self.module2 = sub_left(outer_nc, outer_nc * 2, relu=self.relu, nn.BatchNorm2d(outer_nc * 2))
-        self.module3 = sub_left(outer_nc * 2, outer_nc * 4, relu=self.relu, norm=nn.BatchNorm2d(outer_nc * 4))
-        self.module4 = sub_left(outer_nc * 4, inner_nc, relu=self.relu, norm=nn.BatchNorm2d(inner_nc))
+        self.module1 = sub_left(input_nc, out_nc, relu=None, norm=None)
+        self.module2 = sub_left(out_nc, out_nc * 2, relu=self.relu, nn.BatchNorm2d(outer_nc * 2))
+        self.module3 = sub_left(out_nc * 2, out_nc * 4, relu=self.relu, norm=nn.BatchNorm2d(outer_nc * 4))
+        self.module4 = sub_left(out_nc * 4, inner_nc, relu=self.relu, norm=nn.BatchNorm2d(inner_nc))
         self.module5 = sub_left(inner_nc, inner_nc, relu=self.relu, norm=nn.BatchNorm2d(inner_nc))
-        self.module6 = sub_left(inner_nc, inner_nc, relu=self.relu, norm=None)
+        self.module6 = sub_left(inner_nc, inner_nc, kernel_size = 3, relu=self.relu, norm=None)
 
-    def forward(self, x):
-        return self.model(x)
+    def forward(self, x, embed):
+        x = self.module1(x)
+        x = self.module2(x)
+        x = self.module3(x)
+        x = self.module4(x)
+        x = self.module5(x)
+        x = self.module6(x)
+        embed = embed.view(-1, 1, 4, 4)
+        return torch.cat([x, embed], 1)
+
+class UNetRight(nn.Module):
+    def __init__(self, inner_nc = 512, out_nc = 3, input_nc = 513, dropout=False):
+        super(UNetRight, self).__init__()
+        
+        self.relu = nn.ReLU()
+        self.tanh = nn.Tanh()
+        
+        self.module6 = sub_right(input_nc, inner_nc, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
+        self.module5 = sub_right(inner_nc, inner_nc, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
+        self.module4 = sub_right(inner_nc, inner_nc / 2, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
+        self.module3 = sub_right(inner_nc / 2, inner_nc / 4, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
+        self.module2 = sub_right(inner_nc / 4, inner_nc / 8, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
+        self.module1 = sub_right(inner_nc / 8, out_nc, relu=self.relu, norm=None, tanh=self.tanh, dropout=dropout)
+    
+    def forward(self,x):
+        x = self.module6(x)
+        x = self.module5(x)
+        x = self.module4(x)
+        x = self.module3(x)
+        x = self.module2(x)
+        x = self.module1(x)
+        return x
 
 class sub_left(nn.Module):
     # Input image size = 3 * 224 * 224
@@ -76,7 +107,7 @@ class sub_left(nn.Module):
     # Block 6l: (512 * 7 * 7)
     # Block 7 (ceil): (512 * 4 * 4)
     
-    def __init__(self, in_nc, out_nc, kernel_size=4, padding=1, stride=2,**kwargs):
+    def __init__(self, in_nc, out_nc, kernel_size=4, padding=1, stride=2, **kwargs):
         super(sub_left, self).__init__()
 
         self.layer = nn.Conv2d(in_nc, out_nc, kernel_size, stride, padding, bias=False)
@@ -92,7 +123,7 @@ class sub_left(nn.Module):
 
 class sub_right(nn.Module):
     # Starting image size = 512 * 4 * 4
-    # (512 * 4 * 4) -> (512 * 7 * 7) -> (512 * 14 * 14) -> (256 * 28 * 28) -> (128 * 56 * 56)-> (64 * 112 * 112) -> (3 * 224 * 224) 
+    # (513 * 4 * 4) -> (512 * 7 * 7) -> (512 * 14 * 14) -> (256 * 28 * 28) -> (128 * 56 * 56)-> (64 * 112 * 112) -> (3 * 224 * 224) 
     # For (512 * 4 * 4) -> (512 * 7 * 7), use kernel size 3 with other parameters same?
 
     # Block 6r: (512 * 8 * 8) -> (256 * 7 * 7) ***** ONLY PAD ONCE *****
@@ -104,7 +135,7 @@ class sub_right(nn.Module):
 
     # Output segmentation map: (3 * 224 * 224)
 
-    def __init__(self, in_nc, out_nc, kernel_size=4, padding=1, stride=2, is_embed=False, **kwargs):
+    def __init__(self, in_nc, out_nc, kernel_size=4, padding=1, stride=2, **kwargs):
         super(sub_right, self).__init__()
 
         self.layer = nn.ConvTranspose2d(in_nc, out_nc, kernel_size, stride, padding, bias=False)
@@ -121,5 +152,5 @@ class sub_right(nn.Module):
             model.append(self.dropout)
         self.model = nn.Sequential(*model)
 
-    def forward(self,embed):
-        pass
+    def forward(self,x):
+        return self.model(x)
