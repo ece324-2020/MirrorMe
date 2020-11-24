@@ -42,17 +42,14 @@ def dataloader(root = "\clean_dataset\train_data",
                                    transforms.RandomRotation(45),
                                    transforms.ToTensor())
 
-    dataset = dset.ImageFolder(root=root,
+    image_data = dset.ImageFolder(root=root,
                                transform=transform)
 
-    sourceloader = torch.utils.data.DataLoader(dataset,
-                                               batch_size=batch_size,
-                                               shuffle=True,
-                                               num_workers=2)
+    dataset = torch.utils.data.TensorDataset(image_data, image_data)
 
-    targetloader = torch.utils.data.DataLoader(dataset,
-                                               batch_size=batch_size,
-                                               shuffle=True,
-                                               num_workers=2)
+    dataloader = torch.utils.data.DataLoader(dataset,
+                                            batch_size=batch_size,
+                                            shuffle=True,
+                                            num_workers=2)
 
-    return sourceloader, targetloader
+    return dataloader
