@@ -1,5 +1,10 @@
 import torch
 import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+import torchvision.datasets as dset
+import torchvision.transforms as transforms
+import torchvision.utils as vutils
 
 #Based on UNet in: https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/networks.py
 class UNet(torch.nn.Module):
@@ -31,8 +36,8 @@ class UNet(torch.nn.Module):
         #* For left UNet
         self.leaky_relu = nn.LeakyReLU(0.2)
 
-        self.module1l = sub_left(in_nc, outer_nc, relu=None, norm=None)
-        self.module2l = sub_left(outer_nc, outer_nc * 2, relu=self.leaky_relu, nn.BatchNorm2d(outer_nc * 2))
+        self.module1l = sub_left(in_c, outer_nc, relu=None, norm=None)
+        self.module2l = sub_left(outer_nc, outer_nc * 2, relu=self.leaky_relu, norm=nn.BatchNorm2d(outer_nc * 2))
         self.module3l = sub_left(outer_nc * 2, outer_nc * 4, relu=self.leaky_relu, norm=nn.BatchNorm2d(outer_nc * 4))
         self.module4l = sub_left(outer_nc * 4, inner_nc, relu=self.leaky_relu, norm=nn.BatchNorm2d(inner_nc))
         self.module5l = sub_left(inner_nc, inner_nc, relu=self.leaky_relu, norm=nn.BatchNorm2d(inner_nc))
@@ -42,14 +47,14 @@ class UNet(torch.nn.Module):
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
         
-        self.module6r = sub_right(inner_nc + 1, inner_nc, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
-        self.module5r = sub_right(inner_nc, inner_nc, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
-        self.module4r = sub_right(inner_nc, inner_nc / 2, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
-        self.module3r = sub_right(inner_nc / 2, inner_nc / 4, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
-        self.module2r = sub_right(inner_nc / 4, inner_nc / 8, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
-        self.module1r = sub_right(inner_nc / 8, out_c, relu=self.relu, norm=None, tanh=self.tanh, dropout=dropout)
+        self.module6r = sub_right(inner_nc + 1, inner_nc, kernel_size = 3, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
+        self.module5r = sub_right(inner_nc * 2, inner_nc, relu=self.relu, norm=nn.BatchNorm2d(inner_nc), tanh=None, dropout=dropout)
+        self.module4r = sub_right(inner_nc * 2, inner_nc // 2, relu=self.relu, norm=nn.BatchNorm2d(inner_nc // 2), tanh=None, dropout=dropout)
+        self.module3r = sub_right(inner_nc, inner_nc // 4, relu=self.relu, norm=nn.BatchNorm2d(inner_nc // 4), tanh=None, dropout=dropout)
+        self.module2r = sub_right(inner_nc // 2, inner_nc // 8, relu=self.relu, norm=nn.BatchNorm2d(inner_nc // 8), tanh=None, dropout=dropout)
+        self.module1r = sub_right(inner_nc // 4, out_c, relu=self.relu, norm=None, tanh=self.tanh, dropout=dropout)
 
-
+    
 
         # self.leftmodule = UNetLeft()
         # self.rightmodule = UNetRight(dropout)
@@ -69,20 +74,38 @@ class UNet(torch.nn.Module):
             torch.tensor: output of the network
         """        
         x_1l = self.module1l(x)
-        x_2l = self.module2l(x)
-        x_3l = self.module3l(x)
-        x_4l = self.module4l(x)
-        x_5l = self.module5l(x)
-        x_6l = self.module6l(x)
+        x_2l = self.module2l(x_1l)
+        x_3l = self.module3l(x_2l)
+        x_4l = self.module4l(x_3l)
+        x_5l = self.module5l(x_4l)
+        x_6l = self.module6l(x_5l)
         embed = embed.view(-1, 1, 4, 4)
         x = torch.cat([x_6l, embed], 1)
 
+        r6 = self.module6r(x)
+        print(r6.shape)
         x = torch.cat([self.module6r(x), x_5l], 1)
+        print(x.shape)
+        r5 = self.module5r(x)
+        print(r5.shape)
         x = torch.cat([self.module5r(x), x_4l], 1)
+        print(x.shape)
+        r4 = self.module4r(x)
+        print(r4.shape)
         x = torch.cat([self.module4r(x), x_3l], 1)
+        print(x.shape)
+        r3 = self.module3r(x)
+        print(r3.shape)
         x = torch.cat([self.module3r(x), x_2l], 1)
+        print(x.shape)
+        r2 = self.module2r(x)
+        print(r2.shape)
         x = torch.cat([self.module2r(x), x_1l], 1)
+        print(x.shape)
+        r1 = self.module1r(x)  
+        print(r1.shape)  
         x = self.module1r(x)
+        print(x.shape)
         return x
 
         # x = self.leftmodule(x,embed)
@@ -159,7 +182,7 @@ class sub_right(nn.Module):
         """        
         super(sub_right, self).__init__()
 
-        self.layer = nn.ConvTranspose2d(in_nc, out_nc, kernel_size, stride, padding, bias=False)
+        self.layer = nn.ConvTranspose2d(in_nc, out_nc, kernel_size=kernel_size, stride=stride, padding=padding, bias=False)
         self.dropout = nn.Dropout(0.5)
         model = []
         if kwargs["relu"] != None:
@@ -183,3 +206,49 @@ class sub_right(nn.Module):
             [type]: [description]
         """        
         return self.model(x)
+
+def main():
+    root = '/home/MirrorMe/project/test_img/'
+    batch_size = 2
+    epochs = 200
+    num_workers = 6
+
+    transform = transforms.Compose([#transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))],
+                                   transforms.Resize((224, 224)),
+                                   #transforms.RandomRotation(45),
+                                   transforms.ToTensor()])
+    
+    dataset = dset.ImageFolder(root=root, transform=transform)
+    
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+
+    test_emb = torch.rand((1, 1, 16))
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    model = UNet().to(device)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    loss_function = nn.L1Loss()
+
+    for epoch in range(epochs):
+        print("************ Epoch {} *************\n".format(epoch+1))
+        for i, batch in enumerate(dataloader, 0):
+            optimizer.zero_grad()
+            features, label = batch
+
+            # print("Features: ", features.shape)
+            features = features.to(device)
+            out = model(features, test_emb.to(device))
+
+            batch_loss = loss_function(input = out, target = features)
+            batch_loss.backward()
+            optimizer.step()
+
+            print("Loss: {}".format(batch_loss.item()))
+            # print("OUT: ", out.shape)
+            if ((epoch+1) % 5 == 0):
+                vutils.save_image(out[0], '/home/MirrorMe/project/test_img/{}.png'.format(epoch+1))
+
+
+if __name__ == '__main__':
+    main()
