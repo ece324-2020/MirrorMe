@@ -156,7 +156,7 @@ class ReflectionGAN:
 
         total_loss_t += loss_t.mean().item()
 
-        return e_loss_t, a_loss_t, c_loss_t, total_loss_t
+        return embedding_loss_t, adversarial_loss_t, consistency_loss_t, total_loss_t
 
 
 
