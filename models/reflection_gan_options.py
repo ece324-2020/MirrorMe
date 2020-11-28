@@ -48,7 +48,7 @@ def load_options_from_yaml(path):
         opts['e_loss_ratio'],
         opts['a_loss_ratio'],
         opts['c_loss_ratio'],
-        opts['init_type']
+        opts['init_type'],
         opts['epochs']
     )
 
