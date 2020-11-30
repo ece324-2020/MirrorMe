@@ -37,10 +37,14 @@ def dataloader(root = "\clean_dataset\train_data",
         print(mean)
         print(std)
 
-    transform = transforms.Compose([transforms.Normalize((mean[0], mean[1], mean[2]), (std[0], std[1], std[2]))],
-                                   transforms.Resize(image_size),
-                                   transforms.RandomRotation(45),
-                                   transforms.ToTensor())
+    # transform = transforms.Compose([transforms.Normalize((mean[0], mean[1], mean[2]), (std[0], std[1], std[2]))],
+    #                                transforms.Resize(image_size),
+    #                                transforms.RandomRotation(45),
+    #                                transforms.ToTensor())
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor()
+    ])
 
     image_data = dset.ImageFolder(root=root,
                                transform=transform)

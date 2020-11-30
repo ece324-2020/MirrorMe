@@ -12,6 +12,7 @@ from MirrorMe.GAN_DataLoader import dataloader
 from MirrorMe.models.discriminator_model import *
 from MirrorMe.models.translator_model import *
 from FECNet.models.FECNet import FECNet
+#from torch.utils.data import DataLoader
 
 #Take in small batch of images for testing, checking on progress
 #eg. maybe 10-20 src-trg pairs
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     T, D, fecnet = load_models(FECNET_PATH, options)
 
     #Add data loading stuff here
-    dataloader = dataloader()
+    dataloader = dataloader(root='testdataset')
     og_source_img, og_target_img = next(iter(dataloader)) # 10-20 src-trg pairs
 
     #MODEL OBJECT INSTANTIATE
