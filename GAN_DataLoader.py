@@ -15,7 +15,8 @@ import torchvision.utils as vutils
 def dataloader(root = "\clean_dataset\train_data",
                image_size = 224,
                num_channels = 3,
-               batch_size = 4):
+               batch_size = 4,
+               num_workers = 6):
 #                mean = None,
 #                std = None):
 
@@ -55,6 +56,6 @@ def dataloader(root = "\clean_dataset\train_data",
     dataloader = torch.utils.data.DataLoader(dataset,
                                             batch_size=batch_size,
                                             shuffle=True,
-                                            num_workers=2)
+                                            num_workers=num_workers)
 
     return dataloader
