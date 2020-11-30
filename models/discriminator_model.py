@@ -54,5 +54,13 @@ class NLayerDiscriminator(nn.Module):
         """Standard forward."""
         return self.model(input)
 
-def define_D():
-    pass
+def define_D(input_nc=3, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d, gpu_ids=[0], init_type='normal'):
+    model = NLayerDiscriminator(
+        input_nc=input_nc,
+        ndf=ndf,
+        n_layers=n_layers,
+        norm_layer=norm_layer
+    )
+    model = init_model(model, init_type=init_type, gpu_ids=gpu_ids)
+
+    return model

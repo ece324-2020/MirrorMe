@@ -23,7 +23,7 @@ def init_weights(model, init_type='normal', gain=0.02):
 #https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/networks.py
 #I just called it init_model instead of network to make it consistent with the rest
 #DataParallel for now maybe DistributedDataParallel later
-def init_model(model, init_type='normal', gain=0.02, gpu_ids=[]):
+def init_model(model, init_type='normal', gain=0.02, gpu_ids=[0]):
     if len(gpu_ids) > 0:
         assert(torch.cuda.is_available())
         model.to(gpu_ids[0])

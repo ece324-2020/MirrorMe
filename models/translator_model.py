@@ -207,6 +207,12 @@ class sub_right(nn.Module):
         """        
         return self.model(x)
 
+def define_T(in_c = 3, out_c = 3, outer_nc=64, inner_nc=512, dropout=False, gpu_ids=[0], init_type='normal'):
+    model = UNet(in_c=in_c, out_c=out_c, outer_nc=outer_nc, inner_nc=inner_nc, dropout=dropout)
+    model = init_model(model, init_type=init_type, gpu_ids=gpu_ids)
+
+    return model
+
 def main():
     root = '/home/MirrorMe/project/test_img/'
     batch_size = 2
