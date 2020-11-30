@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import functools
 
 from torch.nn import functional as F
 

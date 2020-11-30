@@ -3,12 +3,13 @@ import os
 import argparse
 import torch
 import torchvision.utils as vutils
+import numpy as np
 
 # from .reflection_gan_options import load_options_from_yaml
 #from models. import *
 from MirrorMe.models.reflection_gan_options import load_options_from_yaml
 from MirrorMe.models.reflection_gan_model import ReflectionGAN
-from MirrorMe.GAN_DataLoader import dataloader
+from MirrorMe.GAN_DataLoader2 import dataloader
 from MirrorMe.models.discriminator_model import *
 from MirrorMe.models.translator_model import *
 from FECNet.models.FECNet import FECNet
@@ -19,7 +20,7 @@ from FECNet.models.FECNet import FECNet
 #save output to file every x epochs, we manually check
 EVAL_IMG_PATH = 'eval_img'
 EVAL_IMG_PREF = 'eval_img_epoch_'
-FECNET_PATH = 'saved_models/model_epoch_15.pkl'
+FECNET_PATH = 'saved_models/model_epoch_1.pkl'
 eval_freq = 5
 
 def load_models(fecnet_path, options):
@@ -36,7 +37,7 @@ def eval(model, img_trg, img_src, path):
 
     for i, img in enumerate(eval_out):
         filename = '{}.jpg'.format(i)
-        vutils.save_image(img, os.path.join(path, filename))
+        vutils.save_image(img, path + filename)
 
     print('Saved eval images!')
 
@@ -45,12 +46,15 @@ if __name__ == '__main__':
     # parser.add_argument('--options', help='Set path to options yaml file')
     # args = parser.parse_args()
 
-    # options = load_options_from_yaml(args.options)
+    #options = load_options_from_yaml(args.options)
+    options = load_options_from_yaml('options.yml')
     T, D, fecnet = load_models(FECNET_PATH, options)
 
     #Add data loading stuff here
-    dataloader = dataloader(root='testdataset')
+    dataloader = dataloader(root='testdataset/testdataset')
     og_source_img, og_target_img = next(iter(dataloader)) # 10-20 src-trg pairs
+    og_source_img = og_source_img.cuda()
+    og_target_img = og_target_img.cuda()
 
     #MODEL OBJECT INSTANTIATE
     model = ReflectionGAN(fecnet, T, D, options)
@@ -65,12 +69,19 @@ if __name__ == '__main__':
 
     for epoch in range(epochs):
         for i, (source_img, target_img) in enumerate(dataloader):
+            source_img = source_img.cuda()
+            target_img = target_img.cuda()
+
             embedding_loss, adversarial_loss, consistency_loss, total_loss = model.train_batch(target_img, source_img)
 
             embedding_losses = np.append(embedding_loss)
             adversarial_losses = np.append(adversarial_loss)
             consistency_losses = np.append(consistency_loss)
             total_losses = np.append(total_loss)
+
+            print("batch num:{}".format(i))
+
+        print("epoch num: {}".format(epoch))
 
         if (epoch % eval_freq == 0):
             dirname = EVAL_IMG_PREF + str(epoch)

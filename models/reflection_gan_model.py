@@ -9,6 +9,10 @@ from .reflection_gan_options import Options
 #(ie. FECnet, Translator/Generator, and the Discriminator)
 #This object will handle the training schema and inference at the highest level
 
+def cos_loss(pred, label):
+    cos = torch.nn.CosineSimilarity()
+    return 1-cos(pred, label)
+
 class ReflectionGAN:
 
     def __init__(self, fecnet, translator, discriminator, options):
@@ -20,20 +24,20 @@ class ReflectionGAN:
         self.discriminator = discriminator
 
         #Optimizers for translator and discriminator
-        self.optim_t = torch.nn.Adam(
+        self.optim_t = torch.optim.Adam(
             self.translator.parameters(),
             self.options.lr_t,
             (self.options.beta1_t, 0.999)
         )
-        self.optim_d = torch.nn.Adam(
+        self.optim_d = torch.optim.Adam(
             self.discriminator.parameters(),
             self.options.lr_d,
             (self.options.beta1_d, 0.999)
         )
 
         #Loss functions
-        self.embedding_loss = torch.nn.L2Loss()
-        self.adversarial_loss = torch.nn.BCEWithLogitsLoss()
+        self.embedding_loss = torch.nn.MSELoss()
+        self.adversarial_loss = torch.nn.MSELoss()
         self.consistency_loss = torch.nn.L1Loss()
 
         #Loss ratios
@@ -53,7 +57,7 @@ class ReflectionGAN:
         self.translator.eval()
 
         e2 = self.fecnet(img_src)
-        out = self.translator(x, e2)
+        out = self.translator(img_trg, e2)
 
         return out
 
@@ -81,14 +85,15 @@ class ReflectionGAN:
         self.optim_d.zero_grad()
 
         #Train with real images
-        #Set all the labels to true (real)
-        label = Variable(torch.full((x.size(0),), 1).cuda())
 
         d_pred = self.discriminator(img_trg)
 
+        #Set all the labels to true (real)
+        label = Variable(torch.full(d_pred.size(), 1).float().cuda())
+
         #discriminator loss on real images
         loss_d_real = self.adversarial_loss(d_pred, label)
-        loss_d_real.backward()
+        loss_d_real.backward(retain_graph=True)
 
         #Train with fake images
         #Project expression e2 onto img_trg
@@ -101,7 +106,7 @@ class ReflectionGAN:
 
         #discrim loss on fake images
         loss_d_gen = self.adversarial_loss(d_pred, label)
-        loss_d_gen.backward()
+        loss_d_gen.backward(retain_graph=True)
 
         loss_d += loss_d_real.mean().item() + loss_d_gen.mean().item()
 

@@ -17,7 +17,7 @@ def init_weights(model, init_type='normal', gain=0.02):
             torch.nn.init.constant_(mod.bias.data, 0.0)
 
     print('Initalizing model with %s' % init_type)
-    net.apply(init_func)
+    model.apply(init_func)
 
 #Credits to CycleGAN
 #https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/networks.py

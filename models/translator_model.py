@@ -6,6 +6,8 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 
+from .model_utils import init_model
+
 #Based on UNet in: https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/networks.py
 class UNet(torch.nn.Module):
     """Create a Unet-based generator"""
@@ -83,29 +85,17 @@ class UNet(torch.nn.Module):
         x = torch.cat([x_6l, embed], 1)
 
         r6 = self.module6r(x)
-        print(r6.shape)
         x = torch.cat([self.module6r(x), x_5l], 1)
-        print(x.shape)
         r5 = self.module5r(x)
-        print(r5.shape)
         x = torch.cat([self.module5r(x), x_4l], 1)
-        print(x.shape)
         r4 = self.module4r(x)
-        print(r4.shape)
         x = torch.cat([self.module4r(x), x_3l], 1)
-        print(x.shape)
         r3 = self.module3r(x)
-        print(r3.shape)
         x = torch.cat([self.module3r(x), x_2l], 1)
-        print(x.shape)
         r2 = self.module2r(x)
-        print(r2.shape)
         x = torch.cat([self.module2r(x), x_1l], 1)
-        print(x.shape)
         r1 = self.module1r(x)  
-        print(r1.shape)  
         x = self.module1r(x)
-        print(x.shape)
         return x
 
         # x = self.leftmodule(x,embed)
