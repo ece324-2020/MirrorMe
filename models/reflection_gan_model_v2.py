@@ -58,8 +58,8 @@ class ReflectionGAN:
         self.fecnet.eval()
         self.translator.eval()
 
-        e2 = self.fecnet(img_src)
-        out = self.translator(img_trg, e2)
+        #e2 = self.fecnet(img_src)
+        out = self.translator(img_trg, img_src)
 
         return out
 
@@ -99,7 +99,7 @@ class ReflectionGAN:
 
         #Train with fake images
         #Project expression e2 onto img_trg
-        img_gen = self.translator(img_trg, e2)
+        img_gen = self.translator(img_trg, img_src)
 
         #Set label to all fake
         label.fill_(0)
@@ -151,7 +151,7 @@ class ReflectionGAN:
 
         #Try to obtain original image from transformed image
         #try to see if consistent
-        img_con = self.translator(img_gen, e1)
+        img_con = self.translator(img_gen, img_trg)
 
         c_loss_t = self.consistency_loss(img_con, img_trg)
 
