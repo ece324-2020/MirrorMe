@@ -29,6 +29,14 @@ class GAN_Dataset(data.Dataset):
         self.transform = transform
         self.total_imgs = os.listdir(dir)
 
+        self.img_paths = []
+        img_path = self.dir + "/"
+        img_list = os.listdir(dir)
+        img_nums = len(img_list)
+        for i in range(img_nums):
+            img_name = img_path + img_list[i]
+            self.img_paths.append(img_name)
+
     def __len__(self):
         return len(self.total_imgs)
 
@@ -36,6 +44,9 @@ class GAN_Dataset(data.Dataset):
         img_loc = os.path.join(self.dir, self.total_imgs[idx])
         image = Image.open(img_loc).convert('RGB')
         tensor_image = self.transform(image)
+
+        name = self.img_paths[idx]
+        print(name)
         return tensor_image
 
 class ConcatDataset(torch.utils.data.Dataset):
@@ -48,11 +59,13 @@ class ConcatDataset(torch.utils.data.Dataset):
     def __len__(self):
         return min(len(d) for d in self.datasets)
 
-def dataloader(root = "\clean_dataset\train_data",
+def dataloader(root_source = "\clean_dataset\train_data",
+               root_target = "\clean_dataset\train_data",
                image_size = 224,
                num_channels = 3,
                batch_size = 4,
-               num_workers = 6):
+               num_workers = 6,
+               shuffle = True):
 
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -72,8 +85,8 @@ def dataloader(root = "\clean_dataset\train_data",
 
     dataloader = data.DataLoader(
     ConcatDataset(
-        GAN_Dataset(dir = "/home/MirrorMe/project/testdataset/testdataset/", transform = transform), 
-        GAN_Dataset(dir = "/home/MirrorMe/project/testdataset/testdataset2/", transform = transform)
-    ), batch_size=batch_size, shuffle=True, num_workers=num_workers)
+        GAN_Dataset(dir = root_source, transform = transform), 
+        GAN_Dataset(dir = root_target, transform = transform)
+    ), batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
 
     return dataloader

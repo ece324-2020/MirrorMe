@@ -1,0 +1,9 @@
+lr_t: 0.00001
+lr_d: 0.00001
+beta1_t: 0.5
+beta1_d: 0.5
+e_loss_ratio: 1
+a_loss_ratio: 1
+c_loss_ratio: 1
+init_type: normal
+epochs: 5000
